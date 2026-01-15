@@ -48,7 +48,7 @@ Follow these steps:
 - Take latest release available from [ariadne-bootloader](https://github.com/loathingKernel/ariadne-bootloader/releases)
 - Extract the archive and copy the inner `hardware` folder directly into your [Arduino sketchbook folder](https://support.arduino.cc/hc/en-us/articles/4412950938514-Open-the-Sketchbook-folder)
 - Download also the `libraries` folder from my forked [ariadne-bootloader](https://github.com/gentooise/ariadne-bootloader) repository and copy it into your sketchbook folder (next to `hardware`)
-  - My fork of `ariadne-bootloader` extends the `EthernetReset` library to support a convenient auto-refreshing web page to show the controller status ([changes](https://github.com/gentooise/ariadne-bootloader/commit/4ddccec2b4ba1376b7e67b0f411612485b38f1f5))
+  - My fork of `ariadne-bootloader` extends the `EthernetReset` library to support a convenient auto-refreshing web page to show the controller status
 - Restart Arduino IDE: `Ariadne Bootloader (in Sketchbook)` entry should appear under `Tools` -> `Board` menu
 - Connect programmer and target boards together as shown in [ArduinoISP](https://docs.arduino.cc/built-in-examples/arduino-isp/ArduinoISP/) and connect programmer board to your PC
 - Under `Tools`:
@@ -89,7 +89,7 @@ When running the `tftp` command, the board must be waiting for a reprogram: the 
 After wall-eno has been uploaded a first time, you can modify/reprogram it anytime by just connecting to `192.168.1.50/<password>/reprogram`
 (where `<password>` is the string that you set up previously in `WriteNetworkSettings` step, e.g. `wall-eno`).
 
-If you are on a Linux environment, you can reuse the following bash functions to program wall-eno and check the status (you can put them in your bash profile):
+If you are on a Linux environment, you can reuse the following bash functions to program wall-eno and check the status from command line (you can put them in your bash profile):
 ```shell
 walleno_upload() {
     elf_path="put-the-path-here" # take "wall-eno.ino.elf" full path from Arduino IDE compilation logs
@@ -110,7 +110,7 @@ walleno_status() {
     rewrite=''
     lines=0
     while : ; do
-        status=$(curl -s 192.168.1.50/wall-eno/status | tr -d '\r' | sed '/^</d')
+        status=$(curl -s 192.168.1.50/wall-eno/raw-status | tr -d '\r' | sed '/^</d')
         for i in $(seq $lines); do echo -n "$UPLINE$ERASELINE"; done
         echo "$status"
         lines=$(echo "$status" | wc -l)
@@ -122,16 +122,20 @@ walleno_status() {
 ## Use wall-eno ⚡
 
 Assuming that your board is reachable at `192.168.1.50` IP address and you set `<password>` string to `wall-eno`,
-you should be able to communicate with your board through the following web pages:
+you should be able to communicate with your board through the following web pages/APIs:
 
 - `http://192.168.1.50/wall-eno/reset`: restart wall-eno board (e.g. useful in case of ModBus errors)
 - `http://192.168.1.50/wall-eno/reprogram`: reset board to wait for new upload (`wall-eno` won't be available until you upload it again via tftp)
-- `http://192.168.1.50/wall-eno/status`: get the latest status/error message reported by `wall-eno`
+- `http://192.168.1.50/wall-eno/status`: get the full status web page reported by `wall-eno`
+- `http://192.168.1.50/wall-eno/raw-status`: get the latest status reported by `wall-eno` in raw text format (useful for command line)
+- `http://192.168.1.50/wall-eno/json-status`: get the latest status reported by `wall-eno` in JSON format (useful for dynamic web page or generic API usage)
 
-If everything works correctly, the status page will show in real time the power absorbed from your home and the
-charging current limit that is given to the wallbox:
+If everything works correctly, the status web page will show in real time the power absorbed from your home and the
+charging current limit that is sent to the wallbox:
 
-![wall-eno](wall-eno.png)
+![wall-eno](wall-eno.gif)
+
+You can see web page source code [here](wall-eno.html).
 
 ### Calibration 📐
 
